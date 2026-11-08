@@ -1,18 +1,6 @@
-import 'dart:io' show Platform;
-
-import 'package:flutter/foundation.dart' show kIsWeb;
-
-/// Configuração de acesso à API ASP.NET.
-///
-/// Dá para trocar o endereço sem mexer no código:
-///   flutter run --dart-define=API_URL=http://192.168.0.10:5000
+/// Configuração de acesso à API ASP.NET no Azure.
 class ApiConfig {
   ApiConfig._();
-
-  /// Porta em que a API ASP.NET roda na sua máquina (veja Properties/launchSettings.json).
-  static const int portaLocal = 5000;
-
-  static const String _urlDefinida = String.fromEnvironment('API_URL');
 
   static String get baseUrl {
     return 'https://fixtintas-api-igor-hmbnhcendze8hpaa.brazilsouth-01.azurewebsites.net/';
