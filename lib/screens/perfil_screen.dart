@@ -51,7 +51,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
       setState(() => _perfil = p);
     } catch (e) {
       if (!mounted) return;
-      setState(() => _erro = textoDoErro(e, 'Não foi possível carregar o perfil.'));
+      setState(
+          () => _erro = textoDoErro(e, 'Não foi possível carregar o perfil.'));
     } finally {
       if (mounted) setState(() => _carregando = false);
     }
@@ -72,7 +73,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
       setState(() => _perfil = p);
       mostrarAviso(context, 'Perfil atualizado.');
     } catch (e) {
-      mostrarAviso(context, textoDoErro(e, 'Não foi possível salvar o perfil.'));
+      mostrarAviso(
+          context, textoDoErro(e, 'Não foi possível salvar o perfil.'));
     } finally {
       if (mounted) setState(() => _salvando = false);
     }
@@ -83,43 +85,73 @@ class _PerfilScreenState extends State<PerfilScreen> {
     final novaCtrl = TextEditingController();
     final chave = GlobalKey<FormState>();
 
+    // Olho de "mostrar senha" de cada campo (o mesmo da tela de login).
+    var ocultarAtual = true;
+    var ocultarNova = true;
+
     final dados = await showDialog<(String, String)>(
       context: context,
-      builder: (contexto) => AlertDialog(
-        title: const Text('Alterar senha'),
-        content: Form(
-          key: chave,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: atualCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Senha atual'),
-                validator: (v) => (v == null || v.isEmpty) ? 'Informe a senha atual' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: novaCtrl,
-                obscureText: true,
-                decoration: const InputDecoration(labelText: 'Nova senha'),
-                validator: RegrasSenha.validar,
-              ),
-              CaixaRegrasSenha(controller: novaCtrl),
-            ],
+      // StatefulBuilder: deixa a janela se redesenhar quando o olho é tocado.
+      builder: (contexto) => StatefulBuilder(
+        builder: (contexto, atualizarJanela) => AlertDialog(
+          title: const Text('Alterar senha'),
+          content: Form(
+            key: chave,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: atualCtrl,
+                  obscureText: ocultarAtual,
+                  decoration: InputDecoration(
+                    labelText: 'Senha atual',
+                    suffixIcon: IconButton(
+                      tooltip: ocultarAtual ? 'Mostrar senha' : 'Ocultar senha',
+                      icon: Icon(ocultarAtual
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () =>
+                          atualizarJanela(() => ocultarAtual = !ocultarAtual),
+                    ),
+                  ),
+                  validator: (v) =>
+                      (v == null || v.isEmpty) ? 'Informe a senha atual' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: novaCtrl,
+                  obscureText: ocultarNova,
+                  decoration: InputDecoration(
+                    labelText: 'Nova senha',
+                    suffixIcon: IconButton(
+                      tooltip: ocultarNova ? 'Mostrar senha' : 'Ocultar senha',
+                      icon: Icon(ocultarNova
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () =>
+                          atualizarJanela(() => ocultarNova = !ocultarNova),
+                    ),
+                  ),
+                  validator: RegrasSenha.validar,
+                ),
+                CaixaRegrasSenha(controller: novaCtrl),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.of(contexto).pop(),
+                child: const Text('Cancelar')),
+            FilledButton(
+              onPressed: () {
+                if (chave.currentState!.validate()) {
+                  Navigator.of(contexto).pop((atualCtrl.text, novaCtrl.text));
+                }
+              },
+              child: const Text('Alterar'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.of(contexto).pop(), child: const Text('Cancelar')),
-          FilledButton(
-            onPressed: () {
-              if (chave.currentState!.validate()) {
-                Navigator.of(contexto).pop((atualCtrl.text, novaCtrl.text));
-              }
-            },
-            child: const Text('Alterar'),
-          ),
-        ],
       ),
     );
     atualCtrl.dispose();
@@ -127,10 +159,14 @@ class _PerfilScreenState extends State<PerfilScreen> {
     if (dados == null || !mounted) return;
 
     try {
-      await context.read<PerfilService>().alterarSenha(senhaAtual: dados.$1, novaSenha: dados.$2);
+      await context
+          .read<PerfilService>()
+          .alterarSenha(senhaAtual: dados.$1, novaSenha: dados.$2);
       if (mounted) mostrarAviso(context, 'Senha alterada.');
     } catch (e) {
-      if (mounted) mostrarAviso(context, textoDoErro(e, 'Não foi possível alterar a senha.'));
+      if (mounted)
+        mostrarAviso(
+            context, textoDoErro(e, 'Não foi possível alterar a senha.'));
     }
   }
 
@@ -152,7 +188,9 @@ class _PerfilScreenState extends State<PerfilScreen> {
               ? MensagemEstado(
                   icone: Icons.cloud_off,
                   texto: _erro ?? 'Perfil indisponível.',
-                  acao: FilledButton(onPressed: _carregar, child: const Text('Tentar novamente')),
+                  acao: FilledButton(
+                      onPressed: _carregar,
+                      child: const Text('Tentar novamente')),
                 )
               : ListView(
                   padding: const EdgeInsets.all(24),
@@ -165,27 +203,40 @@ class _PerfilScreenState extends State<PerfilScreen> {
                           TextFormField(
                             initialValue: _perfil!.email,
                             enabled: false,
-                            decoration: const InputDecoration(labelText: 'E-mail', prefixIcon: Icon(Icons.mail_outline)),
+                            decoration: const InputDecoration(
+                                labelText: 'E-mail',
+                                prefixIcon: Icon(Icons.mail_outline)),
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _nomeCtrl,
                             textCapitalization: TextCapitalization.words,
-                            decoration: const InputDecoration(labelText: 'Nome', prefixIcon: Icon(Icons.person_outline)),
-                            validator: (v) => (v == null || v.trim().length < 2) ? 'Informe seu nome' : null,
+                            decoration: const InputDecoration(
+                                labelText: 'Nome',
+                                prefixIcon: Icon(Icons.person_outline)),
+                            validator: (v) => (v == null || v.trim().length < 2)
+                                ? 'Informe seu nome'
+                                : null,
                           ),
                           const SizedBox(height: 16),
                           TextFormField(
                             controller: _telefoneCtrl,
                             keyboardType: TextInputType.phone,
-                            decoration: const InputDecoration(labelText: 'Telefone', prefixIcon: Icon(Icons.phone_outlined)),
+                            decoration: const InputDecoration(
+                                labelText: 'Telefone',
+                                prefixIcon: Icon(Icons.phone_outlined)),
                           ),
                           const SizedBox(height: 20),
                           FilledButton(
                             onPressed: _salvando ? null : _salvar,
-                            style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                            style: FilledButton.styleFrom(
+                                minimumSize: const Size.fromHeight(48)),
                             child: _salvando
-                                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                        strokeWidth: 2.5))
                                 : const Text('Salvar alterações'),
                           ),
                         ],
@@ -196,7 +247,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                       onPressed: _alterarSenha,
                       icon: const Icon(Icons.lock_reset),
                       label: const Text('Alterar senha'),
-                      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                      style: OutlinedButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48)),
                     ),
                     if (auth.ehAdmin) ...[
                       const SizedBox(height: 16),
@@ -204,7 +256,8 @@ class _PerfilScreenState extends State<PerfilScreen> {
                         child: ListTile(
                           leading: Icon(Icons.admin_panel_settings_outlined),
                           title: Text('Conta de administrador'),
-                          subtitle: Text('Catálogo, estoque, cupons e pedidos são gerenciados pela API (documentação Scalar).'),
+                          subtitle: Text(
+                              'Catálogo, estoque, cupons e pedidos são gerenciados pela API (documentação Scalar).'),
                         ),
                       ),
                     ],

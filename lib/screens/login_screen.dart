@@ -64,6 +64,23 @@ class _LoginScreenState extends State<LoginScreen> {
       ..showSnackBar(SnackBar(content: Text(mensagem)));
   }
 
+  void _esqueciSenha() {
+    showDialog<void>(
+      context: context,
+      builder: (contexto) => AlertDialog(
+        title: const Text('Esqueci a senha'),
+        content: const Text(
+          'A recuperação de senha ainda está em desenvolvimento e será disponibilizada em breve.',
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.of(contexto).pop(),
+              child: const Text('Entendi')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tema = Theme.of(context);
@@ -96,8 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       TextFormField(
                         controller: _nomeCtrl,
                         textCapitalization: TextCapitalization.words,
-                        decoration: const InputDecoration(labelText: 'Nome', prefixIcon: Icon(Icons.person_outline)),
-                        validator: (v) => (v == null || v.trim().length < 2) ? 'Informe seu nome' : null,
+                        decoration: const InputDecoration(
+                            labelText: 'Nome',
+                            prefixIcon: Icon(Icons.person_outline)),
+                        validator: (v) => (v == null || v.trim().length < 2)
+                            ? 'Informe seu nome'
+                            : null,
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -105,48 +126,80 @@ class _LoginScreenState extends State<LoginScreen> {
                       controller: _emailCtrl,
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
-                      decoration: const InputDecoration(labelText: 'E-mail', prefixIcon: Icon(Icons.mail_outline)),
+                      decoration: const InputDecoration(
+                          labelText: 'E-mail',
+                          prefixIcon: Icon(Icons.mail_outline)),
                       validator: (v) {
                         final email = v?.trim() ?? '';
-                        return (!email.contains('@') || !email.contains('.')) ? 'Informe um e-mail válido' : null;
+                        return (!email.contains('@') || !email.contains('.'))
+                            ? 'Informe um e-mail válido'
+                            : null;
                       },
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _senhaCtrl,
                       obscureText: _ocultarSenha,
-                      autofillHints: [_cadastro ? AutofillHints.newPassword : AutofillHints.password],
+                      autofillHints: [
+                        _cadastro
+                            ? AutofillHints.newPassword
+                            : AutofillHints.password
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Senha',
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
-                          icon: Icon(_ocultarSenha ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                          onPressed: () => setState(() => _ocultarSenha = !_ocultarSenha),
+                          icon: Icon(_ocultarSenha
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined),
+                          onPressed: () =>
+                              setState(() => _ocultarSenha = !_ocultarSenha),
                         ),
                       ),
                       // No cadastro vale a regra completa; no login basta não estar vazia
                       // (quem confere se a senha está certa é a API).
                       validator: (v) => _cadastro
                           ? RegrasSenha.validar(v)
-                          : ((v == null || v.isEmpty) ? 'Informe a senha' : null),
+                          : ((v == null || v.isEmpty)
+                              ? 'Informe a senha'
+                              : null),
                       onFieldSubmitted: (_) => _enviar(),
                     ),
+                    if (!_cadastro)
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _carregando ? null : _esqueciSenha,
+                          child: const Text('Esqueci a senha'),
+                        ),
+                      ),
                     if (_cadastro) CaixaRegrasSenha(controller: _senhaCtrl),
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: _carregando ? null : _enviar,
-                      style: FilledButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+                      style: FilledButton.styleFrom(
+                          minimumSize: const Size.fromHeight(48)),
                       child: _carregando
-                          ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2.5))
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child:
+                                  CircularProgressIndicator(strokeWidth: 2.5))
                           : Text(_cadastro ? 'Criar conta' : 'Entrar'),
                     ),
                     const SizedBox(height: 8),
                     TextButton(
-                      onPressed: _carregando ? null : () => setState(() => _cadastro = !_cadastro),
-                      child: Text(_cadastro ? 'Já tenho conta' : 'Ainda não tenho conta'),
+                      onPressed: _carregando
+                          ? null
+                          : () => setState(() => _cadastro = !_cadastro),
+                      child: Text(_cadastro
+                          ? 'Já tenho conta'
+                          : 'Ainda não tenho conta'),
                     ),
                     TextButton(
-                      onPressed: _carregando ? null : () => Navigator.of(context).pop(false),
+                      onPressed: _carregando
+                          ? null
+                          : () => Navigator.of(context).pop(false),
                       child: const Text('Continuar sem entrar'),
                     ),
                   ],
